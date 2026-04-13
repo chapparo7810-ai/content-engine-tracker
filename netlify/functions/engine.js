@@ -1,4 +1,16 @@
 exports.handler = async (event) => {
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS'
+      },
+      body: ''
+    };
+  }
+
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method not allowed' };
   }
@@ -7,7 +19,8 @@ exports.handler = async (event) => {
   if (!apiKey) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'ANTHROPIC_API_KEY environment variable not set' })
+      headers: { 'Access-Control-Allow-Origin': '*' },
+      body: JSON.stringify({ error: 'ANTHROPIC_API_KEY not set in environment variables' })
     };
   }
 
@@ -15,12 +28,20 @@ exports.handler = async (event) => {
   try {
     body = JSON.parse(event.body);
   } catch {
-    return { statusCode: 400, body: JSON.stringify({ error: 'Invalid JSON' }) };
+    return {
+      statusCode: 400,
+      headers: { 'Access-Control-Allow-Origin': '*' },
+      body: JSON.stringify({ error: 'Invalid JSON body' })
+    };
   }
 
   const { prompt } = body;
   if (!prompt) {
-    return { statusCode: 400, body: JSON.stringify({ error: 'Missing prompt' }) };
+    return {
+      statusCode: 400,
+      headers: { 'Access-Control-Allow-Origin': '*' },
+      body: JSON.stringify({ error: 'Missing prompt field' })
+    };
   }
 
   try {
@@ -32,48 +53,37 @@ exports.handler = async (event) => {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-5',
         max_tokens: 4000,
-        stream: true,
         messages: [{ role: 'user', content: prompt }]
       })
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      const err = await response.text();
       return {
         statusCode: response.status,
-        body: JSON.stringify({ error: err })
+        headers: { 'Access-Control-Allow-Origin': '*' },
+        body: JSON.stringify({ error: data.error?.message || JSON.stringify(data) })
       };
     }
 
-    // Stream the response back to the browser
-    const reader = response.body.getReader();
-    const chunks = [];
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      chunks.push(value);
-    }
-
-    // Combine all chunks into one response
-    const combined = Buffer.concat(chunks.map(c => Buffer.from(c)));
+    const text = data.content?.[0]?.text || '';
 
     return {
       statusCode: 200,
       headers: {
-        'Content-Type': 'text/event-stream',
-        'Access-Control-Allow-Origin': '*',
-        'Cache-Control': 'no-cache'
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
       },
-      body: combined.toString('utf-8'),
-      isBase64Encoded: false
+      body: JSON.stringify({ text })
     };
 
   } catch (err) {
     return {
       statusCode: 500,
+      headers: { 'Access-Control-Allow-Origin': '*' },
       body: JSON.stringify({ error: err.message })
     };
   }
