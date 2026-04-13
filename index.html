@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Content Engine">
+<meta name="theme-color" content="#0a0a0a">
+<title>Content Engine — Weekly Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0a0a;--s:#111;--s2:#181818;--s3:#222;
+  --b:rgba(255,255,255,.07);--b2:rgba(255,255,255,.14);
+  --t:#f0ede8;--t2:#888;--t3:#555;
+  --teal:#00d4a0;--td:rgba(0,212,160,.12);--tm:rgba(0,212,160,.25);
+  --blue:#4d9fff;--bd:rgba(77,159,255,.12);--bm:rgba(77,159,255,.25);
+  --pu:#a78bfa;--pud:rgba(167,139,250,.12);
+  --am:#f59e0b;--amd:rgba(245,158,11,.12);
+  --rd:#ff5f5f;--gr:#4ade80;
+  --r:10px;--rl:14px;
+  --acc:var(--teal);--accd:var(--td);--accm:var(--tm);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;-webkit-text-size-adjust:100%;}
+body{background:var(--bg);color:var(--t);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden;}
+button,input,select,textarea{font-family:'Syne',sans-serif;-webkit-appearance:none;appearance:none;}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
+
+/* ── LAYOUT ── */
+.app{display:flex;min-height:100vh;}
+.sidebar{width:220px;flex-shrink:0;background:var(--s);border-right:1px solid var(--b);padding:24px 16px;position:fixed;top:0;left:0;bottom:0;overflow-y:auto;z-index:100;}
+.main{margin-left:220px;flex:1;padding:32px 28px;max-width:900px;}
+
+/* ── BOTTOM NAV (mobile) ── */
+.bottomnav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--s);border-top:1px solid var(--b2);z-index:100;padding:0 0 env(safe-area-inset-bottom);}
+.bnnav{display:flex;}
+.bni{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 4px 8px;font-size:9px;color:var(--t3);cursor:pointer;border:none;background:none;letter-spacing:.05em;gap:4px;transition:color .15s;}
+.bni.active{color:var(--acc);}
+.bni-icon{font-size:18px;line-height:1;}
+
+/* ── SIDEBAR ── */
+.logo{font-size:13px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--teal);margin-bottom:3px;}
+.logo-sub{font-size:10px;color:var(--t3);letter-spacing:.08em;margin-bottom:24px;font-family:'DM Mono',monospace;}
+.nl{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--t3);margin-bottom:8px;font-family:'DM Mono',monospace;}
+.ni{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;font-size:13px;font-weight:500;color:var(--t2);cursor:pointer;transition:all .15s;margin-bottom:2px;border:none;background:none;width:100%;text-align:left;}
+.ni:hover{background:var(--s2);color:var(--t);}
+.ni.active{background:var(--accd);color:var(--acc);}
+.nd{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;}
+.ns{margin-bottom:22px;}
+
+/* ── ACCOUNT TABS ── */
+.acct-tabs{display:flex;gap:6px;margin-bottom:24px;}
+.acct-tab{flex:1;padding:12px 16px;border-radius:var(--r);border:1px solid var(--b2);background:var(--s);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;color:var(--t2);text-align:center;}
+.acct-tab.active-teal{border-color:var(--teal);color:var(--teal);background:var(--td);}
+.acct-tab.active-blue{border-color:var(--blue);color:var(--blue);background:var(--bd);}
+.abadge{font-size:9px;font-weight:600;padding:2px 7px;border-radius:20px;font-family:'DM Mono',monospace;margin-left:6px;display:inline-block;}
+.bteal{background:var(--td);color:var(--teal);border:1px solid var(--tm);}
+.bblue{background:var(--bd);color:var(--blue);border:1px solid var(--bm);}
+
+/* ── WEEK NAV ── */
+.wh{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;}
+.wt{font-size:20px;font-weight:700;}
+.ws{font-size:12px;color:var(--t2);margin-top:2px;font-family:'DM Mono',monospace;}
+.wnav{display:flex;align-items:center;gap:10px;}
+.wb{background:var(--s2);border:1px solid var(--b2);color:var(--t2);border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;font-weight:500;transition:all .15s;min-height:40px;}
+.wb:hover{border-color:var(--acc);color:var(--acc);}
+.wl{font-size:13px;font-weight:600;min-width:120px;text-align:center;font-family:'DM Mono',monospace;color:var(--t2);}
+
+/* ── STATS ── */
+.sr{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px;}
+.sc{background:var(--s);border:1px solid var(--b);border-radius:var(--r);padding:14px 16px;}
+.sl{font-size:10px;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;font-family:'DM Mono',monospace;margin-bottom:6px;}
+.stat-inp{width:100%;background:transparent;border:none;outline:none;font-family:'DM Mono',monospace;font-size:22px;font-weight:700;color:inherit;padding:0;}
+.stat-inp::placeholder{color:var(--t3);font-size:16px;}
+.sc:focus-within{border-color:var(--acc);}
+.stat-pfx{font-size:14px;font-weight:500;opacity:.6;margin-right:2px;}
+.stat-row-flex{display:flex;align-items:baseline;gap:2px;}
+
+/* ── PRODUCT CARD ── */
+.stt{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);font-family:'DM Mono',monospace;margin-bottom:12px;}
+.pc{background:var(--s);border:1px solid var(--b);border-radius:var(--rl);padding:18px 20px;margin-bottom:16px;}
+.pr{display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap;}
+.pb{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:20px;font-family:'DM Mono',monospace;white-space:nowrap;}
+.pb.teal{background:var(--td);color:var(--teal);border:1px solid var(--tm);}
+.pb.blue{background:var(--bd);color:var(--blue);border:1px solid var(--bm);}
+.pn{flex:1;min-width:160px;background:var(--s2);border:1px solid var(--b2);border-radius:8px;padding:10px 14px;color:var(--t);font-size:15px;font-weight:600;outline:none;transition:border .15s;}
+.pn:focus{border-color:var(--acc);}
+.pn::placeholder{color:var(--t3);font-weight:400;}
+.scr{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;}
+.si{background:var(--s2);border-radius:8px;padding:10px;text-align:center;border:1px solid var(--b);}
+.sk{font-size:9px;color:var(--t3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;font-family:'DM Mono',monospace;}
+.ss{width:100%;background:transparent;border:none;color:var(--teal);font-family:'DM Mono',monospace;font-size:16px;font-weight:500;text-align:center;outline:none;cursor:pointer;}
+.ss option{background:var(--s2);color:var(--t);}
+
+/* ── DAY CARDS (expandable, mobile-first) ── */
+.day-list{display:flex;flex-direction:column;gap:6px;margin-bottom:8px;}
+
+.day-card{background:var(--s);border:1px solid var(--b);border-radius:var(--rl);overflow:hidden;}
+.day-card.prot{border-color:rgba(245,158,11,.25);}
+.day-card.today-teal{border-color:var(--teal);}
+.day-card.today-blue{border-color:var(--blue);}
+.day-card.emode{border-color:var(--pu);}
+
+/* Clickable header row */
+.day-header{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;}
+.day-header:active{background:var(--s2);}
+.day-left{display:flex;align-items:center;gap:12px;flex:1;min-width:0;}
+.day-date-block{display:flex;flex-direction:column;align-items:center;width:36px;flex-shrink:0;}
+.day-abbr{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t3);font-family:'DM Mono',monospace;line-height:1;}
+.day-num{font-size:20px;font-weight:700;line-height:1.2;}
+.today-teal .day-num{color:var(--teal);}
+.today-blue .day-num{color:var(--blue);}
+.day-mid{flex:1;min-width:0;}
+.day-label-pill{font-size:10px;font-weight:600;padding:3px 10px;border-radius:20px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.06em;display:inline-block;margin-bottom:4px;}
+.plabel-teal{background:var(--td);color:var(--teal);border:1px solid var(--tm);}
+.plabel-blue{background:var(--bd);color:var(--blue);border:1px solid var(--bm);}
+.plabel-amber{background:var(--amd);color:var(--am);border:1px solid rgba(245,158,11,.3);}
+.plabel-purple{background:var(--pud);color:var(--pu);border:1px solid rgba(167,139,250,.3);}
+.plabel-gray{background:var(--s3);color:var(--t3);border:1px solid var(--b2);}
+.day-progress{font-size:11px;color:var(--t3);font-family:'DM Mono',monospace;}
+.day-prog-bar{height:3px;background:var(--s3);border-radius:3px;margin-top:4px;overflow:hidden;}
+.day-prog-fill{height:100%;background:var(--acc);border-radius:3px;transition:width .3s;}
+.day-chevron{color:var(--t3);font-size:14px;flex-shrink:0;transition:transform .2s;line-height:1;}
+.day-card.open .day-chevron{transform:rotate(180deg);}
+
+/* Editable label input in header */
+.day-label-inp{font-size:10px;font-weight:600;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.06em;border:1px solid rgba(167,139,250,.4);background:var(--pud);border-radius:20px;outline:none;color:var(--pu);padding:3px 10px;display:inline-block;margin-bottom:4px;width:auto;max-width:130px;}
+
+/* Expandable body */
+.day-body{display:none;padding:0 16px 14px;border-top:1px solid var(--b);}
+.day-card.open .day-body{display:block;}
+
+/* ── TASKS inside day body ── */
+.task-list{display:flex;flex-direction:column;gap:2px;margin-top:10px;}
+.ti{display:flex;align-items:center;gap:0;border-radius:8px;overflow:hidden;background:transparent;transition:background .1s;}
+/* Checkbox zone - big tap target */
+.tc-wrap{width:48px;height:48px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.tc{width:20px;height:20px;border-radius:5px;border:1.5px solid var(--b2);display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
+.ti.done .tc{background:var(--acc);border-color:var(--acc);}
+.ck{color:var(--bg);font-size:12px;font-weight:700;display:none;}
+.ti.done .ck{display:block;}
+/* Text zone */
+.tx-wrap{flex:1;padding:12px 8px 12px 0;min-width:0;}
+.tx{width:100%;background:transparent;border:none;outline:none;color:var(--t2);font-family:'Syne',sans-serif;font-size:14px;line-height:1.4;padding:0;}
+.ti.done .tx{text-decoration:line-through;color:var(--t3);}
+.tx.ed{color:var(--t);}
+/* In edit mode make the text input actually editable */
+.tx:not(.ed){pointer-events:none;}
+/* Delete zone - only in edit mode */
+.del-wrap{width:44px;height:48px;display:none;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;}
+.del-wrap.vis{display:flex;}
+.del-wrap:active{background:rgba(255,95,95,.1);}
+.del-icon{color:var(--t3);font-size:18px;line-height:1;transition:color .15s;}
+.del-wrap:active .del-icon{color:var(--rd);}
+
+.add-task-btn{width:100%;background:none;border:1px dashed var(--b2);border-radius:8px;color:var(--t3);font-size:13px;padding:12px;cursor:pointer;text-align:center;margin-top:8px;transition:all .15s;min-height:44px;}
+.add-task-btn:active{border-color:var(--acc);color:var(--acc);}
+
+/* ── EDIT TOGGLE ── */
+.edit-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.etoggle{font-size:12px;padding:7px 14px;border-radius:20px;border:1px solid var(--b2);background:none;color:var(--t3);cursor:pointer;font-family:'DM Mono',monospace;transition:all .15s;min-height:36px;}
+.etoggle.on{border-color:var(--pu);color:var(--pu);background:var(--pud);}
+.ehint{font-size:12px;color:var(--pu);font-family:'DM Mono',monospace;margin-bottom:14px;padding:8px 12px;background:var(--pud);border-radius:8px;border:1px solid rgba(167,139,250,.2);line-height:1.6;}
+
+/* ── VIDEO LOG ── */
+.vlog{background:var(--s);border:1px solid var(--b);border-radius:var(--rl);margin-bottom:16px;overflow:hidden;}
+.vloghdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--b);}
+.vloghdr-t{font-size:13px;font-weight:600;}
+.ab{background:var(--accd);border:1px solid var(--accm);color:var(--acc);border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;transition:opacity .15s;min-height:40px;}
+.ab:active{opacity:.7;}
+.vr{display:grid;grid-template-columns:2fr 1fr 70px 70px 70px 40px;gap:6px;padding:10px 14px;border-bottom:1px solid var(--b);align-items:center;}
+.vr.hdr{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;padding:8px 14px;font-family:'DM Mono',monospace;}
+.li{background:transparent;border:none;color:var(--t);font-family:'Syne',sans-serif;font-size:13px;outline:none;width:100%;min-height:36px;}
+.li::placeholder{color:var(--t3);}
+.ln{background:transparent;border:none;color:var(--acc);font-family:'DM Mono',monospace;font-size:13px;outline:none;width:100%;text-align:center;min-height:36px;}
+.cb{font-size:10px;padding:5px 8px;border-radius:20px;font-family:'DM Mono',monospace;font-weight:600;text-align:center;cursor:pointer;user-select:none;min-height:30px;display:flex;align-items:center;justify-content:center;}
+.chi{background:rgba(74,222,128,.15);color:var(--gr);border:1px solid rgba(74,222,128,.3);}
+.cmi{background:var(--amd);color:var(--am);border:1px solid rgba(245,158,11,.3);}
+.clo{background:rgba(255,95,95,.12);color:var(--rd);border:1px solid rgba(255,95,95,.25);}
+.db{background:none;border:none;color:var(--t3);cursor:pointer;font-size:18px;min-height:36px;min-width:36px;display:flex;align-items:center;justify-content:center;}
+.db:active{color:var(--rd);}
+
+/* ── REVENUE ── */
+.rg{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+.rc{background:var(--s);border:1px solid var(--b);border-radius:var(--rl);padding:16px 18px;}
+.rt{font-size:11px;color:var(--t3);margin-bottom:10px;text-transform:uppercase;letter-spacing:.08em;font-family:'DM Mono',monospace;}
+.rw{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.ry{font-size:20px;font-weight:700;color:var(--t3);}
+.ri{flex:1;background:transparent;border:none;color:var(--acc);font-family:'DM Mono',monospace;font-size:28px;font-weight:500;outline:none;min-height:44px;}
+.ri::placeholder{color:var(--t3);font-size:18px;}
+.rsub{font-size:11px;color:var(--t3);font-family:'DM Mono',monospace;}
+.gw{margin-top:10px;}
+.gl{display:flex;justify-content:space-between;font-size:10px;color:var(--t3);font-family:'DM Mono',monospace;margin-bottom:5px;}
+.gb{height:4px;background:var(--s3);border-radius:4px;overflow:hidden;}
+.gf{height:100%;background:var(--acc);border-radius:4px;transition:width .4s;}
+.gfp{background:var(--pu);}
+
+/* ── HISTORY ── */
+.ht{width:100%;border-collapse:collapse;font-size:12px;}
+.ht th{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;padding:8px 12px;text-align:left;font-family:'DM Mono',monospace;border-bottom:1px solid var(--b);font-weight:400;}
+.ht td{padding:10px 12px;border-bottom:1px solid var(--b);color:var(--t2);}
+.ht tr:hover td{background:var(--s2);}
+.es{text-align:center;padding:40px;color:var(--t3);font-size:13px;font-family:'DM Mono',monospace;}
+
+/* ── TEXTAREA ── */
+.na{width:100%;background:var(--s);border:1px solid var(--b);border-radius:var(--rl);padding:16px;color:var(--t);font-size:14px;line-height:1.7;resize:vertical;min-height:90px;outline:none;transition:border .15s;}
+.na:focus{border-color:var(--acc);}
+.na::placeholder{color:var(--t3);}
+
+/* ── ENGINE STEP PILLS ── */
+.eng-step-pill{font-size:10px;font-weight:600;padding:4px 10px;border-radius:20px;font-family:'DM Mono',monospace;background:var(--s2);border:1px solid var(--b2);color:var(--t3);transition:all .3s;}
+.eng-step-pill.active{background:var(--td);border-color:var(--tm);color:var(--teal);}
+.eng-step-pill.done{background:rgba(0,212,160,.08);border-color:var(--tm);color:var(--teal);opacity:.5;}
+
+/* ENGINE OUTPUT BLOCKS */
+.eng-block{background:var(--s);border:1px solid var(--b);border-radius:var(--rl);overflow:hidden;}
+.eng-block-hdr{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--b);background:var(--s2);}
+.eng-block-num{background:var(--td);color:var(--teal);border:1px solid var(--tm);border-radius:6px;padding:3px 10px;font-family:'DM Mono',monospace;font-size:11px;font-weight:600;flex-shrink:0;}
+.eng-block-title{font-size:14px;font-weight:700;}
+.eng-block-body{padding:16px;font-size:13px;color:var(--t2);line-height:1.8;white-space:pre-wrap;word-break:break-word;}
+.eng-block-body strong{color:var(--t);font-weight:600;}
+.eng-block-body em{color:var(--teal);font-style:normal;}
+
+/* Streaming cursor */
+.streaming-cursor::after{content:'▋';color:var(--teal);animation:blink .7s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+
+/* ── PAGES ── */
+.page{display:none;}
+.page.active{display:block;animation:fi .2s ease;}
+@keyframes fi{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.acct-panel{display:none;}
+.acct-panel.active{display:block;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:720px){
+  .sidebar{display:none;}
+  .main{margin-left:0;padding:16px 14px;padding-bottom:80px;}
+  .bottomnav{display:block;}
+  .sr{grid-template-columns:1fr 1fr;}
+  .scr{grid-template-columns:repeat(3,1fr);}
+  .rg{grid-template-columns:1fr;}
+  .wh{margin-bottom:16px;}
+  .wt{font-size:18px;}
+  .acct-tabs{margin-bottom:16px;}
+}
+@media(min-width:721px){
+  .sr{grid-template-columns:repeat(4,1fr);}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR (desktop) -->
+<nav class="sidebar">
+  <div class="logo">Content Engine</div>
+  <div class="logo-sub">Weekly Tracker</div>
+  <div class="ns">
+    <div class="nl">Workflow</div>
+    <button class="ni active" onclick="sp('weekly')"><span class="nd"></span>This week</button>
+    <button class="ni" onclick="sp('videos')"><span class="nd"></span>Video log</button>
+    <button class="ni" onclick="sp('revenue')"><span class="nd"></span>Revenue</button>
+    <button class="ni" onclick="sp('history')"><span class="nd"></span>History</button>
+  </div>
+  <div class="ns">
+    <div class="nl">Reference</div>
+    <button class="ni" onclick="sp('engine')"><span class="nd"></span>Content Engine</button>
+  </div>
+  <div style="margin-top:auto;padding-top:24px;border-top:1px solid var(--b);">
+    <button class="ni" onclick="newWeek()" style="color:var(--t3)"><span class="nd" style="background:var(--t3)"></span>New week</button>
+  </div>
+</nav>
+
+<!-- BOTTOM NAV (mobile) -->
+<div class="bottomnav">
+  <div class="bnnav">
+    <button class="bni active" onclick="sp('weekly')" id="bn-weekly"><span class="bni-icon">📋</span>Week</button>
+    <button class="bni" onclick="sp('videos')" id="bn-videos"><span class="bni-icon">🎬</span>Videos</button>
+    <button class="bni" onclick="sp('engine')" id="bn-engine"><span class="bni-icon">⚡</span>Engine</button>
+    <button class="bni" onclick="sp('revenue')" id="bn-revenue"><span class="bni-icon">💰</span>Revenue</button>
+    <button class="bni" onclick="sp('history')" id="bn-history"><span class="bni-icon">📅</span>History</button>
+  </div>
+</div>
+
+<main class="main">
+
+<!-- ══ THIS WEEK ══ -->
+<div class="page active" id="page-weekly">
+  <div class="wh">
+    <div><div class="wt">Weekly Plan</div><div class="ws" id="wrange"></div></div>
+    <div class="wnav">
+      <button class="wb" onclick="cw(-1)">← Prev</button>
+      <div class="wl" id="wlabel">Week</div>
+      <button class="wb" onclick="cw(1)">Next →</button>
+    </div>
+  </div>
+
+  <div class="acct-tabs">
+    <div class="acct-tab active-teal" id="tab-aff" onclick="switchAcct('aff')">Affiliate <span class="abadge bteal">TikTok Shop</span></div>
+    <div class="acct-tab" id="tab-shirt" onclick="switchAcct('shirt')">Shirts <span class="abadge bblue">Seller</span></div>
+  </div>
+
+  <!-- ─ AFFILIATE PANEL ─ -->
+  <div class="acct-panel active" id="panel-aff">
+    <div class="sr">
+      <div class="sc"><div class="sl">Tasks done</div><div class="stat-inp" style="color:var(--teal);font-size:22px;font-weight:700;font-family:'DM Mono',monospace;" id="aff-done">0/0</div></div>
+      <div class="sc"><div class="sl">Videos posted</div><input class="stat-inp" id="aff-vids" type="number" placeholder="0" style="color:var(--pu)" oninput="save('aff')" min="0"></div>
+      <div class="sc"><div class="sl">Earnings</div><div class="stat-row-flex"><span class="stat-pfx" style="color:var(--teal)">$</span><input class="stat-inp" id="aff-earn" type="number" placeholder="0" style="color:var(--teal)" oninput="save('aff');updateRev()" min="0"></div></div>
+      <div class="sc"><div class="sl">High conv.</div><input class="stat-inp" id="aff-conv" type="number" placeholder="0" style="color:var(--gr)" oninput="save('aff')" min="0"></div>
+    </div>
+
+    <div class="stt">Affiliate product this week</div>
+    <div class="pc">
+      <div class="pr"><span class="pb teal">Affiliate</span><input class="pn" id="aff-product" placeholder="Product name…" oninput="save('aff')"></div>
+      <div style="margin-bottom:10px;font-size:10px;color:var(--t3);font-family:'DM Mono',monospace;">Validator score (1–10)</div>
+      <div class="scr">
+        <div class="si"><div class="sk">Problem</div><select class="ss" id="aff-sc1" onchange="save('aff')"><option>—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select></div>
+        <div class="si"><div class="sk">Visual</div><select class="ss" id="aff-sc2" onchange="save('aff')"><option>—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select></div>
+        <div class="si"><div class="sk">Commission</div><select class="ss" id="aff-sc3" onchange="save('aff')"><option>—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select></div>
+        <div class="si"><div class="sk">Demand</div><select class="ss" id="aff-sc4" onchange="save('aff')"><option>—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select></div>
+        <div class="si"><div class="sk">Saturation</div><select class="ss" id="aff-sc5" onchange="save('aff')"><option>—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select></div>
+      </div>
+    </div>
+
+    <div class="edit-row">
+      <div class="stt" style="margin-bottom:0;">Daily checklist</div>
+      <button class="etoggle" id="aff-etbtn" onclick="toggleEdit('aff')">✏ Edit tasks</button>
+    </div>
+    <div class="ehint" id="aff-ehint" style="display:none;">Edit mode on — tap task text to rename · tap × to delete · tap + to add a task · edit the label above</div>
+    <div class="day-list" id="aff-daylist"></div>
+
+    <div class="stt" style="margin-top:20px;">Notes / conversion signals</div>
+    <textarea class="na" id="aff-notes" placeholder="What's working? Conversion signals, engagement spikes, ideas…" oninput="save('aff')"></textarea>
+  </div>
+
+  <!-- ─ SHIRT PANEL ─ -->
+  <div class="acct-panel" id="panel-shirt">
+    <div class="sr">
+      <div class="sc"><div class="sl">Tasks done</div><div class="stat-inp" style="color:var(--blue);font-size:22px;font-weight:700;font-family:'DM Mono',monospace;" id="shirt-done">0/0</div></div>
+      <div class="sc"><div class="sl">Videos posted</div><input class="stat-inp" id="shirt-vids" type="number" placeholder="0" style="color:var(--pu)" oninput="save('shirt')" min="0"></div>
+      <div class="sc"><div class="sl">Shirt sales</div><div class="stat-row-flex"><span class="stat-pfx" style="color:var(--blue)">$</span><input class="stat-inp" id="shirt-earn" type="number" placeholder="0" style="color:var(--blue)" oninput="save('shirt');updateRev()" min="0"></div></div>
+      <div class="sc"><div class="sl">High conv.</div><input class="stat-inp" id="shirt-conv" type="number" placeholder="0" style="color:var(--gr)" oninput="save('shirt')" min="0"></div>
+    </div>
+
+    <div class="stt">Design / drop this week</div>
+    <div class="pc" style="border-left:3px solid var(--blue);">
+      <div class="pr"><span class="pb blue">Shirts</span><input class="pn" id="shirt-design" placeholder="Design name or drop theme…" oninput="save('shirt')" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor=''"></div>
+      <div style="margin-bottom:8px;font-size:10px;color:var(--t3);font-family:'DM Mono',monospace;">Filming notes this week</div>
+      <textarea class="na" id="shirt-filmnotes" placeholder="Styles, outfits, angles, props, ideas…" oninput="save('shirt')" style="min-height:60px;border-left:2px solid var(--blue);"></textarea>
+    </div>
+
+    <div class="edit-row">
+      <div class="stt" style="margin-bottom:0;">Daily checklist</div>
+      <button class="etoggle" id="shirt-etbtn" onclick="toggleEdit('shirt')">✏ Edit tasks</button>
+    </div>
+    <div class="ehint" id="shirt-ehint" style="display:none;">Edit mode on — tap task text to rename · tap × to delete · tap + to add a task · edit the label above</div>
+    <div class="day-list" id="shirt-daylist"></div>
+
+    <div class="stt" style="margin-top:20px;">Notes / what's converting</div>
+    <textarea class="na" id="shirt-notes" placeholder="What designs convert? Restock needed? Next drop ideas…" oninput="save('shirt')" style="border-left:2px solid var(--blue);"></textarea>
+  </div>
+</div>
+
+<!-- ══ VIDEO LOG ══ -->
+<div class="page" id="page-videos">
+  <div class="wh"><div><div class="wt">Video Log</div><div class="ws" id="vid-wlabel"></div></div></div>
+  <div class="acct-tabs">
+    <div class="acct-tab active-teal" id="vtab-aff" onclick="switchVidAcct('aff')">Affiliate <span class="abadge bteal">TikTok Shop</span></div>
+    <div class="acct-tab" id="vtab-shirt" onclick="switchVidAcct('shirt')">Shirts <span class="abadge bblue">Seller</span></div>
+  </div>
+  <div id="vpanel-aff">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px;"><button class="ab" onclick="addVid('aff')">+ Add video</button></div>
+    <div class="vlog"><div class="vr hdr"><div>Hook / title</div><div>Style</div><div style="text-align:center">Views</div><div style="text-align:center">Clicks</div><div style="text-align:center">Conv.</div><div></div></div><div id="vrows-aff"></div></div>
+  </div>
+  <div id="vpanel-shirt" style="display:none;">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px;"><button class="ab" style="background:var(--bd);border-color:var(--bm);color:var(--blue);" onclick="addVid('shirt')">+ Add video</button></div>
+    <div class="vlog" style="border-left:3px solid var(--blue);"><div class="vr hdr"><div>Hook / title</div><div>Design</div><div style="text-align:center">Views</div><div style="text-align:center">Sales</div><div style="text-align:center">Conv.</div><div></div></div><div id="vrows-shirt"></div></div>
+  </div>
+  <div style="font-size:12px;color:var(--t3);font-family:'DM Mono',monospace;margin-top:10px;">Tap Conv. badge to cycle Low → Mid → High</div>
+</div>
+
+<!-- ══ REVENUE ══ -->
+<div class="page" id="page-revenue">
+  <div class="wh"><div><div class="wt">Revenue</div><div class="ws">Both income streams</div></div></div>
+  <div class="rg">
+    <div class="rc" style="border-top:3px solid var(--teal);">
+      <div class="rt">Affiliate — this week</div>
+      <div class="rw"><div class="ry">$</div><input class="ri" id="rev-aff" type="number" placeholder="0" oninput="syncEarn('aff')"></div>
+      <div class="rsub">Commission earnings</div>
+      <div class="gw"><div class="gl"><span>To $5K/mo</span><span id="aff-rpct">0%</span></div><div class="gb"><div class="gf" id="aff-rbar" style="width:0%"></div></div></div>
+    </div>
+    <div class="rc" style="border-top:3px solid var(--blue);">
+      <div class="rt">Shirts — this week</div>
+      <div class="rw"><div class="ry" style="color:var(--blue)">$</div><input class="ri" id="rev-shirt" type="number" placeholder="0" style="color:var(--blue)" oninput="syncEarn('shirt')"></div>
+      <div class="rsub">Shirt sales</div>
+      <div class="gw"><div class="gl"><span>To $5K/mo</span><span id="shirt-rpct">0%</span></div><div class="gb"><div class="gf" id="shirt-rbar" style="width:0%;background:var(--blue)"></div></div></div>
+    </div>
+  </div>
+  <div class="rc">
+    <div class="rt">Combined total</div>
+    <div class="rw"><div class="ry">$</div><div class="ri" id="rev-total" style="font-size:32px;font-weight:700;color:var(--t);">0</div></div>
+    <div class="gw"><div class="gl"><span>Weekly target ($1,250 = $5K/mo pace)</span><span id="tot-rpct">0%</span></div><div class="gb" style="height:6px;"><div class="gf gfp" id="tot-rbar" style="width:0%"></div></div></div>
+  </div>
+</div>
+
+<!-- ══ HISTORY ══ -->
+<div class="page" id="page-history">
+  <div class="wh"><div><div class="wt">History</div><div class="ws">All saved weeks</div></div></div>
+  <div style="background:var(--s);border:1px solid var(--b);border-radius:var(--rl);overflow:auto;">
+    <table class="ht">
+      <thead><tr><th>Week</th><th>Product</th><th>Design</th><th>Aff $</th><th>Shirt $</th><th>Total</th><th>Aff V</th><th>Shirt V</th></tr></thead>
+      <tbody id="hbody"></tbody>
+    </table>
+    <div class="es" id="hempty">No saved weeks yet.</div>
+  </div>
+</div>
+
+<!-- ══ ENGINE ══ -->
+<div class="page" id="page-engine">
+  <div class="wh"><div><div class="wt">Content Engine</div><div class="ws">Enter a product — get the full 6-step plan</div></div></div>
+
+  <!-- INPUT FORM -->
+  <div class="pc" style="border-left:3px solid var(--teal);margin-bottom:16px;">
+    <div style="margin-bottom:14px;">
+      <div class="stt" style="margin-bottom:8px;">TikTok Shop product URL or name</div>
+      <input id="eng-product" class="pn" style="width:100%;margin-bottom:10px;" placeholder="e.g. HiSmile iD Mouthwash or paste a TikTok Shop URL…">
+      <div class="stt" style="margin-bottom:8px;">Commission rate (optional)</div>
+      <input id="eng-commission" class="pn" style="width:100%;font-size:14px;padding:8px 12px;" placeholder="e.g. 15%">
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button id="eng-run-btn" onclick="runEngine()" style="flex:1;min-width:140px;background:var(--teal);border:none;color:#000;border-radius:10px;padding:14px 20px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:opacity .15s;">Run Content Engine</button>
+      <button onclick="clearEngine()" style="background:var(--s2);border:1px solid var(--b2);color:var(--t2);border-radius:10px;padding:14px 16px;font-size:13px;cursor:pointer;font-family:'Syne',sans-serif;">Clear</button>
+    </div>
+    <div id="eng-error" style="display:none;margin-top:12px;font-size:12px;color:var(--rd);font-family:'DM Mono',monospace;padding:8px 12px;background:rgba(255,95,95,.08);border-radius:8px;border:1px solid rgba(255,95,95,.2);"></div>
+  </div>
+
+  <!-- STEP PROGRESS -->
+  <div id="eng-steps-bar" style="display:none;margin-bottom:16px;">
+    <div style="display:flex;gap:4px;flex-wrap:wrap;">
+      <div class="eng-step-pill" id="sp-01">01 Validator</div>
+      <div class="eng-step-pill" id="sp-02">02 Engine</div>
+      <div class="eng-step-pill" id="sp-03">03 Hooks</div>
+      <div class="eng-step-pill" id="sp-04">04 Scenarios</div>
+      <div class="eng-step-pill" id="sp-05">05 Styles</div>
+      <div class="eng-step-pill" id="sp-06">06 Scripts</div>
+    </div>
+  </div>
+
+  <!-- OUTPUT SECTIONS — rendered as engine streams -->
+  <div id="eng-output" style="display:flex;flex-direction:column;gap:12px;"></div>
+
+  <!-- APPLY TO WEEK BUTTON -->
+  <div id="eng-apply-wrap" style="display:none;margin-top:16px;">
+    <button onclick="applyToWeek()" style="width:100%;background:var(--td);border:1px solid var(--tm);color:var(--teal);border-radius:10px;padding:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;">✓ Apply product to This Week</button>
+    <div style="font-size:11px;color:var(--t3);text-align:center;margin-top:6px;font-family:'DM Mono',monospace;">Fills in the affiliate product name on the This Week page</div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+// ════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════
+const KEY = 'ce_v5';
+let off = 0;
+let editModes = { aff: false, shirt: false };
+let openDays = { aff: {}, shirt: {} }; // track which day cards are open
+let ST = (() => { try { return JSON.parse(localStorage.getItem(KEY)) || {weeks:{},history:[]}; } catch { return {weeks:{},history:[]}; } })();
+
+function wkKey(o=off) {
+  const d = new Date();
+  d.setDate(d.getDate() - d.getDay() + 1 + o*7);
+  return d.toISOString().slice(0,10);
+}
+
+function getWeek() {
+  const k = wkKey();
+  if (!ST.weeks[k]) ST.weeks[k] = { aff: defAff(), shirt: defShirt() };
+  const w = ST.weeks[k];
+  if (!w.aff) w.aff = defAff();
+  if (!w.shirt) w.shirt = defShirt();
+  return w;
+}
+
+function defAff() {
+  return { product:'', scores:['—','—','—','—','—'], tasks:[
+    {label:'Sun',tag:'plabel-purple',tagLabel:'Plan',tasks:[{t:'Pick affiliate product',done:false},{t:'Write 5+ hooks',done:false},{t:'Prep scripts',done:false},{t:'Plan B-roll shots',done:false}]},
+    {label:'Mon',tag:'plabel-teal',tagLabel:'Film',tasks:[{t:'Main filming session',done:false},{t:'All angles + B-roll',done:false},{t:'Edit first video',done:false},{t:'Post video 1',done:false}]},
+    {label:'Tue',tag:'plabel-amber',tagLabel:'Protected',tasks:[{t:'Post video 2',done:false},{t:'Engage comments',done:false}]},
+    {label:'Wed',tag:'plabel-teal',tagLabel:'Edit',tasks:[{t:'Edit + post video 3',done:false},{t:'Check analytics',done:false},{t:'Workout',done:false}]},
+    {label:'Thu',tag:'plabel-teal',tagLabel:'Post',tasks:[{t:'Post affiliate video 4',done:false},{t:'Review analytics',done:false},{t:'Workout',done:false}]},
+    {label:'Fri',tag:'plabel-amber',tagLabel:'Protected',tasks:[{t:'Schedule weekend posts',done:false},{t:'Post video 5',done:false}]},
+    {label:'Sat',tag:'plabel-amber',tagLabel:'Light',tasks:[{t:'Post video 6 or 7',done:false},{t:'Engage lightly',done:false},{t:'Family time',done:false}]}
+  ], notes:'', videos:[], vids:0, earn:0, conv:0 };
+}
+
+function defShirt() {
+  return { design:'', filmNotes:'', tasks:[
+    {label:'Sun',tag:'plabel-purple',tagLabel:'Plan',tasks:[{t:'Plan shirt content ideas',done:false},{t:'Choose design to feature',done:false},{t:'Write hooks for shirt vids',done:false}]},
+    {label:'Mon',tag:'plabel-blue',tagLabel:'Film',tasks:[{t:'Film shirt showcase',done:false},{t:'Film lifestyle angles',done:false},{t:'Edit + post',done:false}]},
+    {label:'Tue',tag:'plabel-blue',tagLabel:'Post',tasks:[{t:'Post shirt video',done:false},{t:'Engage comments',done:false}]},
+    {label:'Wed',tag:'plabel-blue',tagLabel:'Content',tasks:[{t:'Film B-roll / details',done:false},{t:'Edit + post',done:false},{t:'Check shop analytics',done:false}]},
+    {label:'Thu',tag:'plabel-blue',tagLabel:'Film',tasks:[{t:'Main shirt filming session',done:false},{t:'Try new style / angle',done:false},{t:'Edit + post',done:false}]},
+    {label:'Fri',tag:'plabel-amber',tagLabel:'Protected',tasks:[{t:'Schedule weekend post',done:false},{t:'Reply to DMs / comments',done:false}]},
+    {label:'Sat',tag:'plabel-amber',tagLabel:'Light',tasks:[{t:'Post shirt video',done:false},{t:'Engage lightly',done:false}]}
+  ], notes:'', videos:[], vids:0, earn:0, conv:0 };
+}
+
+// ════════════════════════════════════════
+// RENDER WEEK
+// ════════════════════════════════════════
+function renderWeek() {
+  const w = getWeek(), mon = new Date(wkKey());
+  const sun = new Date(mon); sun.setDate(mon.getDate()-1);
+  const sat = new Date(mon); sat.setDate(mon.getDate()+5);
+  const f = (d,o) => d.toLocaleDateString('en-US',o);
+  const wstr = `${f(sun,{month:'short',day:'numeric'})} – ${f(sat,{month:'short',day:'numeric',year:'numeric'})}`;
+
+  document.getElementById('wlabel').textContent = `Week of ${f(mon,{month:'short',day:'numeric'})}`;
+  document.getElementById('wrange').textContent = wstr;
+  document.getElementById('vid-wlabel').textContent = wstr;
+
+  // Affiliate
+  document.getElementById('aff-product').value = w.aff.product||'';
+  document.getElementById('aff-notes').value = w.aff.notes||'';
+  document.getElementById('aff-vids').value = w.aff.vids||'';
+  document.getElementById('aff-earn').value = w.aff.earn||'';
+  document.getElementById('aff-conv').value = w.aff.conv||'';
+  document.getElementById('rev-aff').value = w.aff.earn||'';
+  ['aff-sc1','aff-sc2','aff-sc3','aff-sc4','aff-sc5'].forEach((id,i)=>{
+    document.getElementById(id).value=(w.aff.scores&&w.aff.scores[i])||'—';
+  });
+
+  // Shirt
+  document.getElementById('shirt-design').value = w.shirt.design||'';
+  document.getElementById('shirt-filmnotes').value = w.shirt.filmNotes||'';
+  document.getElementById('shirt-notes').value = w.shirt.notes||'';
+  document.getElementById('shirt-vids').value = w.shirt.vids||'';
+  document.getElementById('shirt-earn').value = w.shirt.earn||'';
+  document.getElementById('shirt-conv').value = w.shirt.conv||'';
+  document.getElementById('rev-shirt').value = w.shirt.earn||'';
+
+  renderDayList('aff', w.aff, mon);
+  renderDayList('shirt', w.shirt, mon);
+  updateDone('aff', w);
+  updateDone('shirt', w);
+  renderVids('aff');
+  renderVids('shirt');
+  updateRev();
+}
+
+// ════════════════════════════════════════
+// DAY LIST (expandable cards)
+// ════════════════════════════════════════
+function renderDayList(acct, data, mon) {
+  const container = document.getElementById(acct+'-daylist');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const em = editModes[acct];
+  const todayCls = acct==='aff' ? 'today-teal' : 'today-blue';
+  container.innerHTML = '';
+
+  data.tasks.forEach((day, di) => {
+    const dt = new Date(mon); dt.setDate(mon.getDate()+di-1);
+    const isToday = dt.toDateString()===today.toDateString();
+    const isProt = di===2||di===5;
+    const isOpen = openDays[acct][di] !== false; // default open for today, closed for others
+    const dayOpen = isToday ? (openDays[acct][di] !== false) : (openDays[acct][di] === true);
+
+    // Count done/total
+    const done = day.tasks.filter(t=>t.done).length;
+    const total = day.tasks.length;
+    const pct = total ? Math.round(done/total*100) : 0;
+
+    const card = document.createElement('div');
+    card.className = 'day-card'+(isProt?' prot':'')+(isToday?' '+todayCls:'')+(em?' emode':'')+(dayOpen?' open':'');
+    card.dataset.di = di;
+
+    // Header
+    const hdr = document.createElement('div');
+    hdr.className = 'day-header';
+    hdr.onclick = (e) => {
+      // Don't toggle if clicking inside an input
+      if (e.target.tagName==='INPUT') return;
+      openDays[acct][di] = !card.classList.contains('open');
+      card.classList.toggle('open');
+    };
+
+    const left = document.createElement('div'); left.className='day-left';
+
+    const dateBlock = document.createElement('div'); dateBlock.className='day-date-block';
+    const abbr = document.createElement('div'); abbr.className='day-abbr'; abbr.textContent=day.label;
+    const num = document.createElement('div'); num.className='day-num'; num.textContent=dt.getDate();
+    dateBlock.appendChild(abbr); dateBlock.appendChild(num);
+
+    const mid = document.createElement('div'); mid.className='day-mid';
+
+    if (em) {
+      const linp = document.createElement('input');
+      linp.className='day-label-inp'; linp.value=day.tagLabel;
+      linp.onclick=e=>e.stopPropagation();
+      linp.oninput=()=>{ day.tagLabel=linp.value; psave(); };
+      mid.appendChild(linp);
+    } else {
+      const pill = document.createElement('div');
+      pill.className='day-label-pill '+(day.tag||'plabel-gray');
+      pill.textContent=day.tagLabel;
+      mid.appendChild(pill);
+    }
+
+    const prog = document.createElement('div'); prog.className='day-progress';
+    prog.textContent=`${done}/${total} done`;
+    const progBar = document.createElement('div'); progBar.className='day-prog-bar';
+    const progFill = document.createElement('div'); progFill.className='day-prog-fill';
+    progFill.style.cssText=`width:${pct}%;background:${acct==='aff'?'var(--teal)':'var(--blue)'}`;
+    progBar.appendChild(progFill); mid.appendChild(prog); mid.appendChild(progBar);
+
+    const chev = document.createElement('div'); chev.className='day-chevron'; chev.textContent='▾';
+
+    left.appendChild(dateBlock); left.appendChild(mid);
+    hdr.appendChild(left); hdr.appendChild(chev);
+
+    // Body
+    const body = document.createElement('div'); body.className='day-body';
+
+    const tlist = document.createElement('div'); tlist.className='task-list';
+    day.tasks.forEach((task,ti) => {
+      tlist.appendChild(mkTask(task, acct, di, ti));
+    });
+    body.appendChild(tlist);
+
+    if (em) {
+      const atb = document.createElement('button'); atb.className='add-task-btn';
+      atb.textContent='+ Add task';
+      atb.onclick=()=>addTask(acct,di);
+      body.appendChild(atb);
+    }
+
+    card.appendChild(hdr); card.appendChild(body);
+    container.appendChild(card);
+  });
+}
+
+function mkTask(task, acct, di, ti) {
+  const em = editModes[acct];
+  const item = document.createElement('div');
+  item.className='ti'+(task.done?' done':'');
+
+  // Checkbox — big tap target
+  const tcWrap = document.createElement('div'); tcWrap.className='tc-wrap';
+  const tc = document.createElement('div'); tc.className='tc';
+  tc.innerHTML='<span class="ck">✓</span>';
+  tcWrap.appendChild(tc);
+  tcWrap.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleTask(acct, di, ti);
+  });
+
+  // Text — only editable in edit mode
+  const txWrap = document.createElement('div'); txWrap.className='tx-wrap';
+  const tx = document.createElement('input'); tx.type='text'; tx.className='tx'+(em?' ed':'');
+  tx.value=task.t; tx.readOnly=!em;
+  tx.oninput=()=>{ task.t=tx.value; psave(); };
+  // Prevent tap on text from toggling task
+  tx.addEventListener('click', e=>e.stopPropagation());
+  txWrap.appendChild(tx);
+
+  // Delete button — only visible in edit mode
+  const delWrap = document.createElement('div'); delWrap.className='del-wrap'+(em?' vis':'');
+  const delIcon = document.createElement('span'); delIcon.className='del-icon'; delIcon.textContent='✕';
+  delWrap.appendChild(delIcon);
+  delWrap.addEventListener('click', (e) => {
+    e.stopPropagation();
+    delTask(acct, di, ti);
+  });
+
+  item.appendChild(tcWrap); item.appendChild(txWrap); item.appendChild(delWrap);
+  return item;
+}
+
+function toggleTask(acct, di, ti) {
+  const w = getWeek();
+  w[acct].tasks[di].tasks[ti].done = !w[acct].tasks[di].tasks[ti].done;
+  psave(); updateDone(acct, w);
+  // Re-render just this day card's tasks without collapsing
+  const container = document.getElementById(acct+'-daylist');
+  const cards = container.querySelectorAll('.day-card');
+  const card = cards[di];
+  if (!card) return;
+  const tlist = card.querySelector('.task-list');
+  if (!tlist) return;
+  tlist.innerHTML = '';
+  w[acct].tasks[di].tasks.forEach((task,ti2) => tlist.appendChild(mkTask(task, acct, di, ti2)));
+  // Update progress
+  const done = w[acct].tasks[di].tasks.filter(t=>t.done).length;
+  const total = w[acct].tasks[di].tasks.length;
+  const pct = total ? Math.round(done/total*100) : 0;
+  const progText = card.querySelector('.day-progress');
+  const progFill = card.querySelector('.day-prog-fill');
+  if (progText) progText.textContent=`${done}/${total} done`;
+  if (progFill) progFill.style.width=pct+'%';
+}
+
+function addTask(acct, di) {
+  const w = getWeek();
+  w[acct].tasks[di].tasks.push({t:'New task',done:false});
+  psave(); renderDayList(acct, w[acct], new Date(wkKey()));
+}
+
+function delTask(acct, di, ti) {
+  const w = getWeek();
+  w[acct].tasks[di].tasks.splice(ti,1);
+  psave(); renderDayList(acct, w[acct], new Date(wkKey()));
+}
+
+function toggleEdit(acct) {
+  editModes[acct] = !editModes[acct];
+  const em = editModes[acct];
+  document.getElementById(acct+'-etbtn').classList.toggle('on', em);
+  document.getElementById(acct+'-etbtn').textContent = em ? '✓ Done editing' : '✏ Edit tasks';
+  document.getElementById(acct+'-ehint').style.display = em ? 'block' : 'none';
+  // In edit mode, expand all days so user can see tasks
+  if (em) { getWeek()[acct].tasks.forEach((_,di) => openDays[acct][di]=true); }
+  renderDayList(acct, getWeek()[acct], new Date(wkKey()));
+}
+
+function updateDone(acct, w) {
+  let done=0, total=0;
+  w[acct].tasks.forEach(d=>d.tasks.forEach(t=>{total++;if(t.done)done++;}));
+  document.getElementById(acct+'-done').textContent=`${done}/${total}`;
+}
+
+// ════════════════════════════════════════
+// VIDEO LOG
+// ════════════════════════════════════════
+function renderVids(acct) {
+  const w=getWeek(), c=document.getElementById('vrows-'+acct);
+  const vids=w[acct].videos||[];
+  if(!vids.length){c.innerHTML='<div class="es">No videos logged yet.</div>';return;}
+  c.innerHTML=vids.map((v,i)=>`
+    <div class="vr">
+      <input class="li" value="${esc(v.hook)}" placeholder="Hook / title…" oninput="uv('${acct}',${i},'hook',this.value)">
+      <input class="li" value="${esc(v.style)}" placeholder="${acct==='shirt'?'Design…':'Style…'}" oninput="uv('${acct}',${i},'style',this.value)">
+      <input class="ln" type="number" value="${v.views||''}" placeholder="—" oninput="uv('${acct}',${i},'views',this.value)">
+      <input class="ln" type="number" value="${v.clicks||''}" placeholder="—" oninput="uv('${acct}',${i},'clicks',this.value)">
+      <div class="cb ${cc(v.conv)}" onclick="cyc('${acct}',${i})">${v.conv||'Low'}</div>
+      <button class="db" onclick="dv('${acct}',${i})">✕</button>
+    </div>`).join('');
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+function cc(c){return(!c||c==='Low')?'clo':c==='Mid'?'cmi':'chi';}
+function addVid(acct){const w=getWeek();if(!w[acct].videos)w[acct].videos=[];w[acct].videos.push({hook:'',style:'',views:'',clicks:'',conv:'Low'});psave();renderVids(acct);}
+function uv(acct,i,f,v){const w=getWeek();w[acct].videos[i][f]=v;psave();}
+function dv(acct,i){const w=getWeek();w[acct].videos.splice(i,1);psave();renderVids(acct);}
+function cyc(acct,i){const o=['Low','Mid','High'],w=getWeek();w[acct].videos[i].conv=o[(o.indexOf(w[acct].videos[i].conv||'Low')+1)%3];psave();renderVids(acct);}
+
+// ════════════════════════════════════════
+// REVENUE
+// ════════════════════════════════════════
+function updateRev() {
+  const w=getWeek();
+  const a=parseFloat(w.aff.earn||0), sh=parseFloat(w.shirt.earn||0), tot=a+sh;
+  document.getElementById('rev-aff').value=a||'';
+  document.getElementById('rev-shirt').value=sh||'';
+  document.getElementById('rev-total').textContent=tot.toFixed(0);
+  const ap=Math.min(100,Math.round(a*4/5000*100));
+  const sp=Math.min(100,Math.round(sh*4/5000*100));
+  const tp=Math.min(100,Math.round(tot/1250*100));
+  document.getElementById('aff-rbar').style.width=ap+'%'; document.getElementById('aff-rpct').textContent=ap+'%';
+  document.getElementById('shirt-rbar').style.width=sp+'%'; document.getElementById('shirt-rpct').textContent=sp+'%';
+  document.getElementById('tot-rbar').style.width=tp+'%'; document.getElementById('tot-rpct').textContent=tp+'%';
+}
+function syncEarn(acct){const w=getWeek();const val=parseFloat(document.getElementById('rev-'+acct).value||0);w[acct].earn=val||0;document.getElementById(acct+'-earn').value=val||'';psave();updateRev();}
+
+// ════════════════════════════════════════
+// SAVE
+// ════════════════════════════════════════
+function save(acct) {
+  const w=getWeek();
+  if(acct==='aff'){
+    w.aff.product=document.getElementById('aff-product').value;
+    w.aff.notes=document.getElementById('aff-notes').value;
+    w.aff.vids=parseFloat(document.getElementById('aff-vids').value)||0;
+    w.aff.earn=parseFloat(document.getElementById('aff-earn').value)||0;
+    w.aff.conv=parseFloat(document.getElementById('aff-conv').value)||0;
+    w.aff.scores=['aff-sc1','aff-sc2','aff-sc3','aff-sc4','aff-sc5'].map(id=>document.getElementById(id).value);
+    document.getElementById('rev-aff').value=w.aff.earn||'';
+  } else {
+    w.shirt.design=document.getElementById('shirt-design').value;
+    w.shirt.filmNotes=document.getElementById('shirt-filmnotes').value;
+    w.shirt.notes=document.getElementById('shirt-notes').value;
+    w.shirt.vids=parseFloat(document.getElementById('shirt-vids').value)||0;
+    w.shirt.earn=parseFloat(document.getElementById('shirt-earn').value)||0;
+    w.shirt.conv=parseFloat(document.getElementById('shirt-conv').value)||0;
+    document.getElementById('rev-shirt').value=w.shirt.earn||'';
+  }
+  psave(); updateRev();
+}
+function psave(){localStorage.setItem(KEY,JSON.stringify(ST));}
+
+// ════════════════════════════════════════
+// NAV + WEEK
+// ════════════════════════════════════════
+function cw(d){off+=d;renderWeek();}
+
+function newWeek(){
+  if(!confirm('Archive this week and start fresh?'))return;
+  const w=getWeek(), k=wkKey();
+  ST.history.unshift({key:k,affProduct:w.aff.product,shirtDesign:w.shirt.design,affEarn:w.aff.earn,shirtEarn:w.shirt.earn,total:(parseFloat(w.aff.earn||0)+parseFloat(w.shirt.earn||0)).toFixed(0),affVids:(w.aff.videos||[]).length,shirtVids:(w.shirt.videos||[]).length});
+  off=0; psave(); openDays={aff:{},shirt:{}}; renderWeek(); renderHistory(); sp('weekly');
+}
+
+function renderHistory(){
+  const body=document.getElementById('hbody'),empty=document.getElementById('hempty');
+  if(!ST.history||!ST.history.length){body.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  body.innerHTML=ST.history.map(h=>`<tr>
+    <td style="font-family:'DM Mono',monospace;white-space:nowrap;">${h.key}</td>
+    <td>${h.affProduct||'—'}</td><td>${h.shirtDesign||'—'}</td>
+    <td style="font-family:'DM Mono',monospace;color:var(--teal);">$${h.affEarn||0}</td>
+    <td style="font-family:'DM Mono',monospace;color:var(--blue);">$${h.shirtEarn||0}</td>
+    <td style="font-family:'DM Mono',monospace;font-weight:600;">$${h.total||0}</td>
+    <td style="font-family:'DM Mono',monospace;">${h.affVids||0}</td>
+    <td style="font-family:'DM Mono',monospace;">${h.shirtVids||0}</td>
+  </tr>`).join('');
+}
+
+function sp(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  // Sidebar
+  document.querySelectorAll('.ni').forEach(b=>b.classList.toggle('active',!!(b.getAttribute('onclick')&&b.getAttribute('onclick').includes("'"+name+"'"))));
+  // Bottom nav — match by id bn-{name}
+  document.querySelectorAll('.bni').forEach(b=>b.classList.remove('active'));
+  const bnActive = document.getElementById('bn-'+name);
+  if(bnActive) bnActive.classList.add('active');
+  if(name==='history')renderHistory();
+  if(name==='videos'){renderVids('aff');renderVids('shirt');}
+  if(name==='revenue')updateRev();
+}
+
+function switchAcct(acct){
+  document.getElementById('panel-aff').classList.toggle('active',acct==='aff');
+  document.getElementById('panel-shirt').classList.toggle('active',acct==='shirt');
+  document.getElementById('tab-aff').className='acct-tab'+(acct==='aff'?' active-teal':'');
+  document.getElementById('tab-shirt').className='acct-tab'+(acct==='shirt'?' active-blue':'');
+  document.documentElement.style.setProperty('--acc',acct==='aff'?'var(--teal)':'var(--blue)');
+  document.documentElement.style.setProperty('--accd',acct==='aff'?'var(--td)':'var(--bd)');
+  document.documentElement.style.setProperty('--accm',acct==='aff'?'var(--tm)':'var(--bm)');
+}
+
+function switchVidAcct(acct){
+  document.getElementById('vpanel-aff').style.display=acct==='aff'?'block':'none';
+  document.getElementById('vpanel-shirt').style.display=acct==='shirt'?'block':'none';
+  document.getElementById('vtab-aff').className='acct-tab'+(acct==='aff'?' active-teal':'');
+  document.getElementById('vtab-shirt').className='acct-tab'+(acct==='shirt'?' active-blue':'');
+  renderVids(acct);
+}
+
+// Open today's card by default
+function initOpenDays(){
+  const today=new Date();today.setHours(0,0,0,0);
+  const mon=new Date(wkKey());
+  ['aff','shirt'].forEach(acct=>{
+    for(let di=0;di<7;di++){
+      const dt=new Date(mon);dt.setDate(mon.getDate()+di-1);
+      openDays[acct][di]=dt.toDateString()===today.toDateString();
+    }
+  });
+}
+
+// ════════════════════════════════════════
+// CONTENT ENGINE — AI RUNNER
+// ════════════════════════════════════════
+
+let engLastProduct = '';
+
+const STEP_DEFS = [
+  { id:'01', label:'Product Validator', key:'validator' },
+  { id:'02', label:'Engine (Angle)', key:'engine' },
+  { id:'03', label:'Hook Generator', key:'hooks' },
+  { id:'04', label:'Scenario Generator', key:'scenarios' },
+  { id:'05', label:'Video Styles', key:'styles' },
+  { id:'06', label:'Script Generator', key:'scripts' },
+];
+
+const ENGINE_PROMPT = (product, commission) => `You are Omar's TikTok affiliate content strategist. Run the full 6-step Content Engine for this product. Be specific, actionable, and optimized for TikTok Shop affiliate conversions.
+
+PRODUCT: ${product}
+COMMISSION RATE: ${commission || 'unknown'}
+
+Output each step clearly labeled with its step number and name. Be thorough but concise. Format for readability with short paragraphs and bullet points where useful.
+
+---
+
+STEP 01 — PRODUCT VALIDATOR
+Score each dimension 1-10 and give a brief reason. Then give a total score out of 50 and a clear GO / NO-GO recommendation.
+- Problem Score (does it solve a real, visible problem?)
+- Visual Score (is the transformation/result visually compelling on video?)
+- Commission Score (is the payout worth the effort?)
+- Demand Score (is there existing search/social demand?)
+- Saturation Score (10 = low saturation = good, 1 = oversaturated)
+Total: X/50 — GO or NO-GO
+
+STEP 02 — ENGINE (CONTENT ANGLE)
+Pick the single best content angle for this product and explain why. Options: Problem/Solution, Lifestyle Upgrade, Comparison/VS, Transformation, Social Proof/Testimonial, Curiosity/Reveal. Then list 2 secondary angles.
+
+STEP 03 — HOOK GENERATOR
+Write 7 hooks for this product. Mix: pattern interrupt, curiosity gap, bold claim, relatable problem, trend-jacking. Label each hook type.
+
+STEP 04 — SCENARIO GENERATOR
+Write 5 specific real-life scenarios that put the viewer in the moment. Each scenario should make the viewer think "that's literally me." Format as short vivid scenes.
+
+STEP 05 — VIDEO STYLES
+Recommend 4 video formats ranked best to worst for this product. For each: name the style, describe the execution in 2 sentences, and note ideal length.
+
+STEP 06 — SCRIPT GENERATOR
+Write ONE complete ready-to-film TikTok script using the best hook, angle, and style from above. Include:
+- Hook (first 3 seconds, word-for-word)
+- Body (key points, natural delivery notes)
+- CTA (specific call to action)
+- B-Roll Shot List (5-8 specific shots to capture)
+
+Keep the script conversational and authentic to how a real creator would talk.`;
+
+async function runEngine() {
+  const product = document.getElementById('eng-product').value.trim();
+  if (!product) {
+    showEngError('Enter a product name or URL first.');
+    return;
+  }
+  const commission = document.getElementById('eng-commission').value.trim();
+  engLastProduct = product;
+
+  // Reset UI
+  document.getElementById('eng-error').style.display = 'none';
+  document.getElementById('eng-output').innerHTML = '';
+  document.getElementById('eng-apply-wrap').style.display = 'none';
+  document.getElementById('eng-steps-bar').style.display = 'block';
+  STEP_DEFS.forEach(s => {
+    const el = document.getElementById('sp-'+s.id);
+    if (el) { el.className = 'eng-step-pill'; }
+  });
+
+  const btn = document.getElementById('eng-run-btn');
+  btn.textContent = 'Running…';
+  btn.disabled = true;
+  btn.style.opacity = '0.6';
+
+  // Create output blocks for each step
+  const blocks = {};
+  STEP_DEFS.forEach(s => {
+    const block = document.createElement('div');
+    block.className = 'eng-block';
+    block.id = 'eng-block-'+s.key;
+    block.style.display = 'none';
+    block.innerHTML = `
+      <div class="eng-block-hdr">
+        <span class="eng-block-num">${s.id}</span>
+        <span class="eng-block-title">${s.label}</span>
+      </div>
+      <div class="eng-block-body streaming-cursor" id="eng-body-${s.key}"></div>`;
+    document.getElementById('eng-output').appendChild(block);
+    blocks[s.key] = { block, body: null };
+  });
+
+  try {
+    const resp = await fetch('/.netlify/functions/engine', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        product,
+        commission,
+        prompt: ENGINE_PROMPT(product, commission)
+      })
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(()=>({}));
+      throw new Error(err.error?.message || `API error ${resp.status}`);
+    }
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let fullText = '';
+    let currentStep = null;
+    let currentBody = null;
+
+    // Step detection patterns
+    const stepPatterns = [
+      { key:'validator', re:/STEP\s*01|PRODUCT\s*VALIDATOR/i },
+      { key:'engine',    re:/STEP\s*02|ENGINE\s*\(|CONTENT\s*ANGLE/i },
+      { key:'hooks',     re:/STEP\s*03|HOOK\s*GENERATOR/i },
+      { key:'scenarios', re:/STEP\s*04|SCENARIO\s*GENERATOR/i },
+      { key:'styles',    re:/STEP\s*05|VIDEO\s*STYLES/i },
+      { key:'scripts',   re:/STEP\s*06|SCRIPT\s*GENERATOR/i },
+    ];
+
+    function detectStep(text) {
+      for (const p of stepPatterns) {
+        if (p.re.test(text)) return p.key;
+      }
+      return null;
+    }
+
+    function activateStep(key) {
+      const stepDef = STEP_DEFS.find(s=>s.key===key);
+      if (!stepDef) return;
+      // Mark previous done
+      if (currentStep) {
+        const prevPill = document.getElementById('sp-'+STEP_DEFS.find(s=>s.key===currentStep)?.id);
+        if (prevPill) prevPill.className='eng-step-pill done';
+        if (currentBody) currentBody.classList.remove('streaming-cursor');
+      }
+      // Activate new
+      const pill = document.getElementById('sp-'+stepDef.id);
+      if (pill) pill.className='eng-step-pill active';
+      const blk = document.getElementById('eng-block-'+key);
+      if (blk) blk.style.display='block';
+      currentStep = key;
+      currentBody = document.getElementById('eng-body-'+key);
+      if (currentBody) currentBody.classList.add('streaming-cursor');
+      // Scroll into view
+      blk?.scrollIntoView({behavior:'smooth',block:'nearest'});
+    }
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6).trim();
+        if (data === '[DONE]') continue;
+        try {
+          const evt = JSON.parse(data);
+          if (evt.type === 'content_block_delta' && evt.delta?.text) {
+            const chunk = evt.delta.text;
+            fullText += chunk;
+
+            // Detect which step we're in
+            const detectedKey = detectStep(fullText.slice(-300));
+            if (detectedKey && detectedKey !== currentStep) {
+              activateStep(detectedKey);
+            }
+
+            // Write to current body, stripping the step header line
+            if (currentBody) {
+              // Strip the STEP XX — TITLE line from content
+              let display = fullText;
+              // Show only content after the current step header
+              const stepDef = STEP_DEFS.find(s=>s.key===currentStep);
+              if (stepDef) {
+                const hdrRe = new RegExp(`STEP\\s*${stepDef.id}[^\\n]*\\n?`, 'i');
+                const lastMatch = display.lastIndexOf('\nSTEP');
+                if (lastMatch !== -1) {
+                  const section = display.slice(lastMatch);
+                  const afterHdr = section.replace(/\nSTEP\s*\d+[^\n]*\n?/i,'');
+                  currentBody.textContent = afterHdr.trimStart();
+                }
+              }
+            }
+          }
+        } catch {}
+      }
+    }
+
+    // Finalize — split full text into sections and render cleanly
+    finalizeOutput(fullText);
+
+    // Mark last step done
+    if (currentStep) {
+      const lastPill = document.getElementById('sp-'+STEP_DEFS.find(s=>s.key===currentStep)?.id);
+      if (lastPill) lastPill.className='eng-step-pill done';
+      if (currentBody) currentBody.classList.remove('streaming-cursor');
+    }
+
+    document.getElementById('eng-apply-wrap').style.display = 'block';
+
+  } catch(err) {
+    showEngError('Error: ' + err.message + '. Make sure you\'re running this from a hosted URL (not a local file), and the API key is configured.');
+    console.error(err);
+  } finally {
+    btn.textContent = 'Run Content Engine';
+    btn.disabled = false;
+    btn.style.opacity = '1';
+  }
+}
+
+function finalizeOutput(fullText) {
+  // Split text into step sections and render each cleanly
+  const sections = [
+    { key:'validator', re:/STEP\s*01[^\n]*\n([\s\S]*?)(?=STEP\s*02|$)/i },
+    { key:'engine',    re:/STEP\s*02[^\n]*\n([\s\S]*?)(?=STEP\s*03|$)/i },
+    { key:'hooks',     re:/STEP\s*03[^\n]*\n([\s\S]*?)(?=STEP\s*04|$)/i },
+    { key:'scenarios', re:/STEP\s*04[^\n]*\n([\s\S]*?)(?=STEP\s*05|$)/i },
+    { key:'styles',    re:/STEP\s*05[^\n]*\n([\s\S]*?)(?=STEP\s*06|$)/i },
+    { key:'scripts',   re:/STEP\s*06[^\n]*\n([\s\S]*?)$/i },
+  ];
+
+  sections.forEach(sec => {
+    const match = fullText.match(sec.re);
+    const body = document.getElementById('eng-body-'+sec.key);
+    const blk = document.getElementById('eng-block-'+sec.key);
+    if (match && match[1] && body) {
+      body.textContent = match[1].trim();
+      body.classList.remove('streaming-cursor');
+      if (blk) blk.style.display = 'block';
+    }
+  });
+
+  // Activate all step pills as done
+  STEP_DEFS.forEach(s => {
+    const pill = document.getElementById('sp-'+s.id);
+    const blk = document.getElementById('eng-block-'+s.key);
+    if (blk && blk.style.display !== 'none') {
+      if (pill) pill.className = 'eng-step-pill done';
+    }
+  });
+}
+
+function applyToWeek() {
+  if (!engLastProduct) return;
+  const w = getWeek();
+  w.aff.product = engLastProduct;
+  document.getElementById('aff-product').value = engLastProduct;
+  psave();
+  sp('weekly');
+  switchAcct('aff');
+  // Brief highlight
+  const el = document.getElementById('aff-product');
+  el.style.borderColor = 'var(--teal)';
+  setTimeout(()=>{ el.style.borderColor=''; }, 2000);
+}
+
+function clearEngine() {
+  document.getElementById('eng-product').value = '';
+  document.getElementById('eng-commission').value = '';
+  document.getElementById('eng-output').innerHTML = '';
+  document.getElementById('eng-steps-bar').style.display = 'none';
+  document.getElementById('eng-apply-wrap').style.display = 'none';
+  document.getElementById('eng-error').style.display = 'none';
+  engLastProduct = '';
+}
+
+function showEngError(msg) {
+  const el = document.getElementById('eng-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+// ════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════
+initOpenDays();
+renderWeek();
+renderHistory();
+</script>
+</body>
+</html>
